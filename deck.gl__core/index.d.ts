@@ -1096,8 +1096,7 @@ declare module "@deck.gl/core/lib/layer" {
 	export interface LayerInputHandler<D=any> {
 		(o: PickInfo<D>, e: HammerInput): any;
 	}
-	export type DataSet<D> = Iterable<D>;
-	// | AsyncIterable ToDo: Add AsyncIterable
+	export type DataSet<D> = Iterable<D> | AsyncIterable<D>;
 	// | { length: number } Todo: Support non-iterable objects, see deck.gl docs: /docs/developer-guide/using-layers.md#accessors
 
 	export interface LayerProps<D> {
