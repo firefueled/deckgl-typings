@@ -43,10 +43,6 @@ declare module "@deck.gl/core/debug/loggers" {
 		) => void;
 	};
 }
-declare module "debug" {
-	export function register(handlers: any): void;
-	export default function debug(eventType: any): void;
-}
 declare module "@deck.gl/core/utils/json-loader" {
 	function isJSON(text: any): boolean;
 	const _default: {
@@ -1110,6 +1106,23 @@ declare module "@deck.gl/core/lib/layer" {
 		(o: PickInfo<D>, e: HammerInput): any;
 	}
 	export type DataSet<D> = Iterable<D> | AsyncIterable<D>;
+
+	export type WidthUnits = "meters" | "pixels";
+
+	export interface ObjectInfo<D,T> {
+		// the index of the current iteration
+		index: number;
+		// the value of the 'data' prop on the layer.
+		data: DataSet<D> | Promise<DataSet<D>> | string;
+		// a pre-allocated array.
+		// the accessor function can optionally fill data into this array and
+		// return it, instead of creating a new array for every object.
+		// In some browsers this improves performance significantly by
+		// reducing garbage collection.
+		target: T[];
+	}
+
+	// | AsyncIterable ToDo: Add AsyncIterable
 	// | { length: number } Todo: Support non-iterable objects, see deck.gl docs: /docs/developer-guide/using-layers.md#accessors
 
 	export interface LayerProps<D> {
@@ -1287,27 +1300,13 @@ declare module "@deck.gl/core/lib/composite-layer" {
 		getSubLayerClass(id: any, DefaultLayerClass: any): any;
 		getSubLayerRow(row: any, sourceObject: any, sourceObjectIndex: any): any;
 		getSubLayerAccessor(accessor: any): any;
-		getSubLayerProps(sublayerProps?: {}): {
-			opacity: any;
-			pickable: any;
-			visible: any;
-			parameters: any;
-			getPolygonOffset: any;
-			highlightedObjectIndex: any;
-			autoHighlight: any;
-			highlightColor: any;
-			coordinateSystem: any;
-			coordinateOrigin: any;
-			wrapLongitude: any;
-			positionFormat: any;
-			modelMatrix: any;
-			extensions: any;
-		};
+		getSubLayerProps<SD, SP extends LayerProps<SD> = LayerProps<SD>>(sublayerProps?: {}): SP;
 		_getAttributeManager(): any;
 		_renderLayers(): void;
 	}
 }
 declare module "@deck.gl/core/viewports/viewport" {
+	import { Position } from "@deck.gl/core/utils/positions";
 	export default class Viewport {
 		/**
 		 * @classdesc
@@ -1317,6 +1316,15 @@ declare module "@deck.gl/core/viewports/viewport" {
 		 * A new viewport instance should be created if any parameters have changed.
 		 */
 		constructor(opts?: {});
+		id?: string;
+		x: number;
+		y: number;
+		width: number;
+		height: number;
+		isGeospatial: boolean;
+		zoom: number;
+		scale: number;
+		position: Position;
 		get metersPerPixel(): number;
 		get projectionMode(): number;
 		equals(viewport: any): any;
@@ -1696,9 +1704,20 @@ declare module "@deck.gl/core/controllers/transition-manager" {
 		_onTransitionUpdate(transition: any): void;
 	}
 }
+
+//https://github.com/visgl/deck.gl/blob/master/docs/api-reference/core/controller.md
 declare module "@deck.gl/core/controllers/controller" {
+	export interface ControllerOptions {
+		scrollZoom?:boolean;
+		dragPan?: boolean;
+		dragRotate?:boolean;
+		doubleClickZoom?: boolean;
+		touchZoom?: boolean;
+		touchRotate?: boolean;
+		keyboard?: boolean;
+	}
 	export default class Controller {
-		constructor(ControllerState: any, options?: {});
+		constructor(ControllerState: any, options?: ControllerOptions);
 		set events(customEvents: any);
 		finalize(): void;
 		/**
@@ -2214,8 +2233,7 @@ declare module "@deck.gl/core/lib/tooltip" {
 	}
 }
 declare module "@deck.gl/core/lib/deck" {
-	import Controller from "@deck.gl/core/controllers/controller";
-	import ControllerOptions from "@deck.gl/core/controllers/controller";
+	import Controller, {ControllerOptions} from "@deck.gl/core/controllers/controller";
 	import Effect from "@deck.gl/core/lib/effect";
 	import Layer from "@deck.gl/core/lib/layer";
 	import View from "@deck.gl/core/views/view";
@@ -2326,12 +2344,16 @@ declare module "@deck.gl/core/lib/deck" {
 		onAfterRender?: (args: { gl: WebGLRenderingContext }) => void;
 		onError?: (error: Error, source: any) => void;
 		_onMetrics?: (metrics: any) => void;
+
+		ContextProvider?: React.Provider<any>
 	}
 
 	export default class Deck {
 		constructor(props: DeckProps);
 		canvas: HTMLCanvasElement;
 		viewState: any;
+		width: number;
+		height: number;
 		finalize(): void;
 		props: DeckProps;
 		setProps(props: Partial<DeckProps>): void;

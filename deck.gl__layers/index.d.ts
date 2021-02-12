@@ -172,7 +172,7 @@ declare module "@deck.gl/layers/icon-layer/icon-manager" {
 }
 declare module "@deck.gl/layers/icon-layer/icon-layer" {
 	import { Layer } from "@deck.gl/core";
-	import { LayerProps } from "@deck.gl/core/lib/layer";
+	import { ObjectInfo, LayerProps, WidthUnits } from "@deck.gl/core/lib/layer";
 	import { Position, Position2D } from "@deck.gl/core/utils/positions";
 	import Texture2D from "@luma.gl/webgl/classes/texture-2d";
 	import { RGBAColor } from "@deck.gl/core/utils/color";
@@ -213,7 +213,7 @@ declare module "@deck.gl/layers/icon-layer/icon-layer" {
 		iconAtlas?: Texture2D | string;
 		iconMapping?: IconMapping;
 		sizeScale?: number;
-		sizeUnits?: "meters" | "pixels";
+		sizeUnits?: WidthUnits;
 		sizeMinPixels?: number;
 		sizeMaxPixels?: number;
 		billboard?: boolean;
@@ -223,11 +223,11 @@ declare module "@deck.gl/layers/icon-layer/icon-layer" {
 		getIcon?: (
 			x: D
 		) => string | ({ url: string; id?: string } & IconDefinitionBase);
-		getPosition?: (x: D) => Position;
-		getSize?: ((x: D) => number) | number;
-		getColor?: ((x: D) => RGBAColor) | RGBAColor;
-		getAngle?: ((x: D) => number) | number;
-		getPixelOffset?: ((x: D) => Position2D) | Position2D;
+		getPosition?: (x: D, objectInfo: ObjectInfo<D, Position>) => Position;
+		getSize?: ((x: D, objectInfo: ObjectInfo<D, number>) => number) | number;
+		getColor?: ((x: D, objectInfo: ObjectInfo<D, RGBAColor>) => RGBAColor) | RGBAColor;
+		getAngle?: ((x: D, objectInfo: ObjectInfo<D, number>) => number) | number;
+		getPixelOffset?: ((x: D, objectInfo: ObjectInfo<D, Position2D>) => Position2D) | Position2D;
 	}
 
 	export default class IconLayer<D, P extends IconLayerProps<D> = IconLayerProps<D>> extends Layer<D, P> {
@@ -263,11 +263,11 @@ declare module "@deck.gl/layers/line-layer/line-layer-fragment.glsl" {
 }
 declare module "@deck.gl/layers/line-layer/line-layer" {
 	import { Layer } from "@deck.gl/core";
-	import { LayerProps } from "@deck.gl/core/lib/layer";
+	import { LayerProps, WidthUnits } from "@deck.gl/core/lib/layer";
 	import { RGBAColor } from "@deck.gl/core/utils/color";
 	import { Position } from "@deck.gl/core/utils/positions";
 	export interface LineLayerProps<D> extends LayerProps<D> {
-		widthUnits?: "meters" | "pixels";
+		widthUnits?: WidthUnits;
 		widthScale?: number;
 		widthMinPixels?: number;
 		widthMaxPixels?: number;
@@ -341,12 +341,12 @@ declare module "@deck.gl/layers/scatterplot-layer/scatterplot-layer-fragment.gls
 }
 declare module "@deck.gl/layers/scatterplot-layer/scatterplot-layer" {
 	import { Layer } from "@deck.gl/core";
-	import { LayerProps } from "@deck.gl/core/lib/layer";
+	import { LayerProps, WidthUnits } from "@deck.gl/core/lib/layer";
 	import { Position } from "@deck.gl/core/utils/positions";
 	import { RGBAColor } from "@deck.gl/core/utils/color";
 	export interface ScatterplotLayerProps<D> extends LayerProps<D> {
 		radiusScale?: number;
-		lineWidthUnits?: string;
+		lineWidthUnits?: WidthUnits;
 		lineWidthScale?: number;
 		stroked?: boolean;
 		filled?: boolean;
@@ -397,7 +397,7 @@ declare module "@deck.gl/layers/column-layer/column-layer-fragment.glsl" {
 declare module "@deck.gl/layers/column-layer/column-layer" {
 	import { Layer } from "@deck.gl/core";
 	import ColumnGeometry from "@deck.gl/layers/column-layer/column-geometry";
-	import { LayerProps } from "@deck.gl/core/lib/layer";
+	import { LayerProps, WidthUnits } from "@deck.gl/core/lib/layer";
 	import { Position, Position2D } from "@deck.gl/core/utils/positions";
 	import { RGBAColor } from "@deck.gl/core/utils/color";
 	export interface ColumnLayerProps<D> extends LayerProps<D> {
@@ -412,7 +412,7 @@ declare module "@deck.gl/layers/column-layer/column-layer" {
 		stroked?: boolean;
 		extruded?: boolean;
 		wireframe?: boolean;
-		lineWidthUnits?: string;
+		lineWidthUnits?: WidthUnits;
 		lineWidthScale?: boolean;
 		lineWidthMinPixels?: number;
 		lineWidthMaxPixels?: number;
@@ -468,7 +468,7 @@ declare module "@deck.gl/layers/column-layer/grid-cell-layer" {
 		getColor?: ((d: D) => RGBAColor) | RGBAColor;
 		getElevation?: ((d: D) => number) | number;
 	}
-	export default class GridCellLayer<D> extends ColumnLayer<D> {
+	export default class GridCellLayer<D, P extends GridCellLayerProps<D> = GridCellLayerProps<D>> extends ColumnLayer<D, P> {
 		constructor(props: GridCellLayerProps<D>);
 		getGeometry(diskResolution: any): any;
 		draw({ uniforms }: { uniforms: any }): void;
@@ -706,16 +706,17 @@ declare module "@deck.gl/layers/utils" {
 declare module "@deck.gl/layers/polygon-layer/polygon-layer" {
 	import { CompositeLayer } from "@deck.gl/core";
 	import { CompositeLayerProps } from "@deck.gl/core/lib/composite-layer";
+	import { WidthUnits } from '@deck.gl/core/lib/layer';
 	import { Position } from "@deck.gl/core/utils/positions";
 	import { RGBAColor } from "@deck.gl/core/utils/color";
 	export interface PolygonLayerProps<D> extends CompositeLayerProps<D> {
 		filled?: boolean;
-		stroked: boolean;
-		extruded: boolean;
+		stroked?: boolean;
+		extruded?: boolean;
 		wireframe?: boolean;
 		elevationScale?: number;
-		lineWidthUnits?: string;
-		lineWidthScale?: boolean;
+		lineWidthUnits?: WidthUnits;
+		lineWidthScale?: number;
 		lineWidthMinPixels?: number;
 		lineWidthMaxPixels?: number;
 		lineJointRounded?: boolean;
@@ -730,7 +731,7 @@ declare module "@deck.gl/layers/polygon-layer/polygon-layer" {
 		getLineWidth?: ((x: D) => number) | number;
 		getElevation?: ((x: D) => number) | number;
 	}
-	export default class PolygonLayer<D> extends CompositeLayer<D> {
+	export default class PolygonLayer<D, P extends PolygonLayerProps<D> = PolygonLayerProps<D>> extends CompositeLayer<D, P> {
 		constructor(props: PolygonLayerProps<D>);
 		initializeState(params: any): void;
 		updateState({
@@ -776,13 +777,14 @@ declare module "@deck.gl/layers/geojson-layer/geojson-layer" {
 	import { CompositeLayer } from "@deck.gl/core";
 	import { CompositeLayerProps } from "@deck.gl/core/lib/composite-layer";
 	import { RGBAColor } from "@deck.gl/core/utils/color";
+	import { WidthUnits } from "@deck.gl/core/lib/layer";
 	export interface GeoJsonLayerProps<D> extends CompositeLayerProps<D> {
 		//Render Options
 		filled?: boolean;
 		stroked?: boolean;
 		extruded?: boolean;
 		wireframe?: boolean;
-		lineWidthUnits?: string;
+		lineWidthUnits?: WidthUnits;
 		lineWidthScale?: number;
 		lineWidthMinPixels?: number;
 		lineWidthMaxPixels?: number;
@@ -802,7 +804,7 @@ declare module "@deck.gl/layers/geojson-layer/geojson-layer" {
 		getLineWidth?: ((d: D) => number) | number;
 		getElevation?: ((d: D) => number) | number;
 	}
-	export default class GeoJsonLayer<D> extends CompositeLayer<D> {
+	export default class GeoJsonLayer<D, P extends GeoJsonLayerProps<D> = GeoJsonLayerProps<D>> extends CompositeLayer<D, P> {
 		constructor(props: GeoJsonLayerProps<D>);
 		initializeState(params: any): void;
 		updateState({ props, changeFlags }: { props: any; changeFlags: any }): void;
@@ -991,11 +993,13 @@ declare module "@deck.gl/layers/text-layer/text-layer" {
 	import { FontSettings } from "@deck.gl/layers/text-layer/font-atlas-manager";
 	import { RGBAColor } from "@deck.gl/core/utils/color";
 	import { CompositeLayerProps } from "@deck.gl/core/lib/composite-layer";
+	import { ObjectInfo, WidthUnits } from "@deck.gl/core/lib/layer";
 	export type TextAnchor = "start" | "middle" | "end";
 	export type AlignmentBaseline = "top" | "center" | "bottom";
+
 	export interface TextLayerProps<D> extends CompositeLayerProps<D> {
 		sizeScale?: number;
-		sizeUnits?: "meters" | "pixels";
+		sizeUnits?: WidthUnits;
 		sizeMinPixels?: number;
 		sizeMaxPixels?: number;
 		billboard?: boolean;
@@ -1009,18 +1013,18 @@ declare module "@deck.gl/layers/text-layer/text-layer" {
 		maxWidth?: number;
 
 		//Data Accessors
-		getText?: (x: D) => string;
-		getPosition?: (x: D) => [number, number];
-		getSize?: ((x: D) => number) | number;
-		getColor?: ((x: D) => RGBAColor) | RGBAColor;
-		getAngle?: ((x: D) => number) | number;
+		getText?: (x: D, objectInfo: ObjectInfo<D, string>) => string;
+		getPosition?: (x: D, objectInfo: ObjectInfo<D, [number, number]>) => [number, number];
+		getSize?: ((x: D, objectInfo: ObjectInfo<D, number>) => number) | number;
+		getColor?: ((x: D, objectInfo: ObjectInfo<D, RGBAColor>) => RGBAColor) | RGBAColor;
+		getAngle?: ((x: D, objectInfo: ObjectInfo<D, number>) => number) | number;
 
 		//Text Alignment Options
 		getTextAnchor?: ((x: D) => TextAnchor) | TextAnchor;
 		getAlignmentBaseline?: ((x: D) => AlignmentBaseline) | AlignmentBaseline;
 		getPixelOffset?: ((x: D) => number[]) | number[];
 	}
-	export default class TextLayer<D> extends CompositeLayer<D> {
+	export default class TextLayer<D, P extends TextLayerProps<D> = TextLayerProps<D>> extends CompositeLayer<D, P> {
 		constructor(props: TextLayerProps<D>);
 		initializeState(params: any): void;
 		updateState({
